@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout } from 'antd';
 import MapComponent from './components/MapComponent';
 import SidePanel from './SidePanel'
@@ -39,6 +39,12 @@ function MainLayout(props) {
 
     const [transportList, setTransportList] = useState([]);
     const [isInAddMode, SetInAddMode] = useState(false);
+    const [isInSetOfficeMode, SetInOfficeSetMode] = useState(false);
+    const [CurrentlySelectedMapDirections, setCurrentlySelectedMapDirections] = useState(null);
+
+    useEffect(() => {
+        console.log(CurrentlySelectedMapDirections);
+      }, [CurrentlySelectedMapDirections])
 
     const AddToTransportList = (newItem) => {
         const list = [...transportList];
@@ -48,18 +54,24 @@ function MainLayout(props) {
 
     const SetAddMode = (addMode) => {
         console.log('InAddMode: ' + addMode);
+        if(!addMode){
+            setCurrentlySelectedMapDirections(null);
+        }
+        else if(addMode){
+            SetInOfficeSetMode(false);
+        }
         SetInAddMode(addMode);
     }
 
     return (
         <Layout style={layoutStyle}>
           <Sider width="25%" style={siderStyle}>
-            <SidePanel TransportList={transportList} AddToTransportList={AddToTransportList} setInAddMode={SetAddMode}/>
+            <SidePanel TransportList={transportList} AddToTransportList={AddToTransportList} setInAddMode={SetAddMode} setInOfficeSetMode={SetInOfficeSetMode} mapDirections={CurrentlySelectedMapDirections}/>
           </Sider>
           <Layout>
             <Header style={headerStyle}>Header</Header>
             <Content style={contentStyle}>
-              <MapComponent/>
+              <MapComponent TransportList={transportList} SetTransportList={setTransportList} isInAddMode={isInAddMode} isInSetOfficeMode={isInSetOfficeMode} setMapDirections={setCurrentlySelectedMapDirections}/>
             </Content>
             {/* <Footer style={footerStyle}>Footer</Footer> */}
           </Layout>
