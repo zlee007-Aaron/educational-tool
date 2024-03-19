@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Dropdown, Button, Card, Space } from 'antd';
 import { DownOutlined } from '@ant-design/icons';
-import { Flex, Divider, List, Typography } from 'antd';
+import { Flex, Input, Divider, Tooltip, List, Typography } from 'antd';
 
 
 //Emissions are in grams
@@ -60,6 +60,16 @@ const TypeOfJourney = [
     },
   ];
 
+const Days = [
+    'mon',
+    'tue',
+    'wed',
+    'thur',
+    'fri',
+    'sat',
+    'sun',
+];
+
 function SidePanel(props) {
 
     const [AddNewTransportItemScreen, SetNewTransportItemScreen] = useState(false);
@@ -68,21 +78,40 @@ function SidePanel(props) {
     const [transportList, setTransportList] = useState([]);
 
     const [NewTransportItem, setNewTransportItem] = useState({});
-
     const [selectedVehicleType, SetselectedVehicleType] = useState(null);
     const [selectedJourneyType, SetselectedJourneyType] = useState(null);
-
     const [JourneyDistance, SetJourneyDistance] = useState(null);
-
     const [JourneyDuration, SetJourneyDuration] = useState(null);
-
     const [EmissionValue, SetEmissionValue] = useState(null);
+    const [perTonGoods, SetPerTonGoods] = useState(false);
+    const [TonesOfGoods, SetTonesOfGoods] = useState(null);
+    const [perPerson, SetPerPerson] = useState(false);
+    const [People, SetPeople] = useState(null);
+    const [TotalEmissionsPerTrip, SetTotalEmissionsPerTrip] = useState(null);
+
+    const [WarningMessage, SetWarningMessage] = useState(null);
 
     const SetTransportType = (e) => {
         let TransportItem = NewTransportItem;
         let TT = VehicleTypesSelectable.find((value) => value.key == e.key);
         SetEmissionValue(TT.emission);
         TransportItem.TransportType =  TT.label;
+
+        if(TT.perTonneGoods){
+            SetPerTonGoods(true)
+        }
+        else{
+            SetTonesOfGoods(null);
+            SetPerTonGoods(false);
+        }
+        if(TT.PerPerson){
+            SetPerPerson(true);
+        }
+        else{
+            SetPeople(null);
+            SetPerPerson(false);
+        }
+
         setNewTransportItem(TransportItem);
         SetselectedVehicleType(TT.label);
         console.log(NewTransportItem);
@@ -97,17 +126,48 @@ function SidePanel(props) {
     }
 
     const AddCurrentTransportItemToList = () => {
-        if(NewTransportItem && NewTransportItem.TransportType && NewTransportItem.Distance && NewTransportItem.Duration)
+        if(NewTransportItem && NewTransportItem.TransportType && NewTransportItem.Distance && NewTransportItem.EmissionsPerTrip)
             props.AddToTransportList(NewTransportItem);
     }
 
+    //Sets the total emissions when any of the values used to calculate it change
+    useEffect(() => {
+        let Totalemissions = ((JourneyDistance/1000)*EmissionValue).toPrecision(5);
+        if(perTonGoods){
+            Totalemissions = ((JourneyDistance/1000)*EmissionValue*TonesOfGoods).toPrecision(5);
+        }
+        else if(perPerson){
+            Totalemissions = ((JourneyDistance/1000)*EmissionValue*People).toPrecision(5);
+        }
 
+        SetTotalEmissionsPerTrip(Totalemissions);
+
+        if(Totalemissions == 0){
+            SetWarningMessage("Enter all values first and set a distance on the map");
+        }
+        else{
+            SetWarningMessage(null);
+        }
+
+        let TransportItem = NewTransportItem;
+        TransportItem.EmissionsPerTrip = Totalemissions;
+        setNewTransportItem(TransportItem);
+    },[EmissionValue, TonesOfGoods, People, JourneyDistance] )
+
+
+    //Updates the local transport list when the main one updates
     useEffect(() => {
         console.log(props.TransportList);
         if(Array.isArray(props.TransportList))
             setTransportList(props.TransportList);
       }, [props.TransportList]);
 
+
+    useEffect(() => {
+        console.log(NewTransportItem);
+      }, [NewTransportItem]);
+
+    //Updates the journey distances when the map values change
     useEffect(() => {
         if(props.mapDirections){
             SetJourneyDistance(props.mapDirections.Distance);
@@ -122,6 +182,7 @@ function SidePanel(props) {
         }
       }, [props.mapDirections]);
 
+    //resets values and informs the main layout that we are now in adding mode
     useEffect(() => {
         props.setInAddMode(AddNewTransportItemScreen);
         if(AddNewTransportItemScreen){
@@ -131,9 +192,15 @@ function SidePanel(props) {
             SetJourneyDistance(null);
             SetJourneyDuration(null);
             SetEmissionValue(null);
+            SetPerTonGoods(false);
+            SetTonesOfGoods(null);
+            SetPerPerson(false);
+            SetPeople(null);
+            SetTotalEmissionsPerTrip(null);
         }
       }, [AddNewTransportItemScreen]);
 
+      //Informs main layout that we are in office setting mode
     useEffect(() => {
         props.setInOfficeSetMode(OfficeLocationMode);
       }, [OfficeLocationMode]);
@@ -174,7 +241,7 @@ function SidePanel(props) {
                         New transport method
                     </p>
 
-                    <List style={{margin:'10px', backgroundColor:'white', borderRadius:'10px', textAlign: 'left', paddingLeft: '10px'}} >
+                    <List style={{margin:'10px', backgroundColor:'white', borderRadius:'10px', textAlign: 'left', paddingLeft: '10px', paddingRight: '10px'}} >
                         <List.Item>
                             <Dropdown
                                 menu={{
@@ -211,27 +278,49 @@ function SidePanel(props) {
 
                             </Dropdown>    
                         </List.Item>
+
+                        {perTonGoods &&
                         <List.Item>
-                            Emissions per KM: {EmissionValue? EmissionValue + 'g' : ''}
+                            Tones of goods
+                            <Input placeholder="Ton's of goods" onChange={(e) => SetTonesOfGoods(Number(e.target.value))} />
+                        </List.Item>
+                        }
+                        {perPerson &&
+                        <List.Item>
+                            Passengers
+                            <Input placeholder="People" onChange={(e) => SetPeople(Number(e.target.value))}/>
+                        </List.Item>
+                        }
+
+                        <List.Item>
+                            Emissions per KM: {EmissionValue? EmissionValue + (perTonGoods ? 'g per ton goods' : perPerson? 'g per person' : 'g') : ''} 
                         </List.Item>
                         <List.Item>
-                            Journey Distance: {JourneyDistance}
+                            Journey Distance: {JourneyDistance? JourneyDistance + 'm' : ''}
                         </List.Item>
+                        {/* <List.Item>
+                            Journey Duration: {JourneyDuration? }
+                        </List.Item> */}
                         <List.Item>
-                            Journey Duration: {JourneyDuration}
-                        </List.Item>
-                        <List.Item>
-                            Journey emissions: {EmissionValue? ((JourneyDistance/1000)*EmissionValue) + 'g' : ''}
+                            Journey emissions: {TotalEmissionsPerTrip? TotalEmissionsPerTrip + 'g' : ''}
                         </List.Item>
                     </List>
 
                 </Flex>
 
 
-                
-                <Button onClick={() =>{AddCurrentTransportItemToList(); SetNewTransportItemScreen(false) }}>
-                    Add
-                </Button>
+                {WarningMessage &&
+                <Tooltip placement="top" title={WarningMessage} >
+                    <Button  disabled={WarningMessage} >
+                        Add
+                    </Button>
+                </Tooltip>}
+                {!WarningMessage &&
+                    <Button onClick={() =>{AddCurrentTransportItemToList(); SetNewTransportItemScreen(false) }}>
+                        Add
+                    </Button>
+                }
+
                 <Button onClick={() =>{ SetNewTransportItemScreen(false) }}>
                     Cancel
                 </Button>
