@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Layout, Card, Space } from 'antd';
+import MapComponent from './components/MapComponent';
 const { Header, Footer, Sider, Content } = Layout;
 
 
@@ -14,7 +15,6 @@ const headerStyle = {
   const contentStyle = {
     textAlign: 'center',
     minHeight: 120,
-    lineHeight: '120px',
     color: '#fff',
     backgroundColor: '#0958d9',
   };
@@ -63,7 +63,9 @@ function MainLayout(props) {
           </Sider>
           <Layout>
             <Header style={headerStyle}>Header</Header>
-            <Content style={contentStyle}>Content</Content>
+            <Content style={contentStyle}>
+              <MapComponent/>
+            </Content>
             {/* <Footer style={footerStyle}>Footer</Footer> */}
           </Layout>
         </Layout>
