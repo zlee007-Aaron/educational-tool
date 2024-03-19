@@ -38,18 +38,23 @@ const headerStyle = {
 function MainLayout(props) {
 
     const [transportList, setTransportList] = useState([]);
+    const [isInAddMode, SetInAddMode] = useState(false);
 
     const AddToTransportList = (newItem) => {
-        console.log("odasufbjaiokjufbasdfbj");
         const list = [...transportList];
         list.push(newItem);
         setTransportList(list);
     }
 
+    const SetAddMode = (addMode) => {
+        console.log('InAddMode: ' + addMode);
+        SetInAddMode(addMode);
+    }
+
     return (
         <Layout style={layoutStyle}>
           <Sider width="25%" style={siderStyle}>
-            <SidePanel TransportList={transportList} AddToTransportList={AddToTransportList}/>
+            <SidePanel TransportList={transportList} AddToTransportList={AddToTransportList} setInAddMode={SetAddMode}/>
           </Sider>
           <Layout>
             <Header style={headerStyle}>Header</Header>
