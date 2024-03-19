@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
-import { Layout, Card, Space } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Button, Layout, Card, Space } from 'antd';
+import SidePanel from './SidePanel'
+
 const { Header, Footer, Sider, Content } = Layout;
+
 
 
 const headerStyle = {
@@ -31,35 +34,23 @@ const headerStyle = {
 
 
 
-function TransportItemDisplay(props){
-    return (<Card
-        title={props.name}
-        //extra={<a href="#">More</a>}
-        style={{
-          width: 260,
-        }}
-      >
-        <p>Card content</p>
-        <p>Card content</p>
-        <p>Card content</p>
-      </Card>)
-}
 
 
 function MainLayout(props) {
 
-    const [TransportList, SetTransportList] = useState([]);
+    const [transportList, setTransportList] = useState([]);
 
+    const AddToTransportList = (newItem) => {
+        console.log("odasufbjaiokjufbasdfbj");
+        const list = [...transportList];
+        list.push(newItem);
+        setTransportList(list);
+    }
 
     return (
         <Layout style={layoutStyle}>
           <Sider width="25%" style={siderStyle}>
-            Sider
-            <Space direction="vertical" size={12}>
-                {TransportList.length > 0 && 
-                    TransportList.map((TransportItem) => TransportItemDisplay(TransportItem))
-                }
-            </Space>
+            <SidePanel TransportList={transportList} AddToTransportList={AddToTransportList}/>
           </Sider>
           <Layout>
             <Header style={headerStyle}>Header</Header>
