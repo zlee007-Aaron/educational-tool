@@ -162,6 +162,7 @@ function SidePanel(props) {
             if(selectedJourneyType === 'Goods delivery' && DaysBetweenDelivery){
                 newTransportItem.daysBetweenDelivery = DaysBetweenDelivery;
             }
+            console.log(newTransportItem);
             props.AddToTransportList(newTransportItem);
         }
     }
@@ -179,7 +180,7 @@ function SidePanel(props) {
         SetTotalEmissionsPerTrip(Totalemissions);
 
         if(Totalemissions == 0){
-            SetWarningMessage("Enter all values first and set a distance on the map");
+            SetWarningMessage("Enter all values first and click to set a distance on the map");
         }
         else if(selectedJourneyType){
             console.log(DaysBetweenDelivery);
@@ -266,7 +267,7 @@ function SidePanel(props) {
         props.setInOfficeSetMode(OfficeLocationMode);
       }, [OfficeLocationMode]);
 
-
+    
     return (
         <>
         {!AddNewTransportItemScreen && 
