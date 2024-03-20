@@ -58,7 +58,8 @@ const MapComponent = (props) => {
         OfficeMarker.current.setLngLat(event.lngLat).addTo(map);
 
         if(transportList.current.length > 0){
-          //TODO fetch and re-calculate all distances and then the emissions
+          //FetchForAll();
+          //TODO kinda works
         }
 
       }
@@ -92,8 +93,19 @@ const MapComponent = (props) => {
     // Add navigation control (the +/- zoom buttons)
     map.addControl(new mapboxgl.NavigationControl(), "top-right");
 
+
+    // async function FetchForAll(){
+    //   for (let i = 0; i < transportList.current.length; i++) {
+    //     let data = await getRoute(OfficeMarker.current, new mapboxgl.Marker().setLngLat(transportList.current[i].Destination), false);
+    //     transportList.current[i].Duration = data.routes[0].duration;
+    //     transportList.current[i].Distance = data.routes[0].distance;
+    //   }
+    //   //console.log(transportList.current);
+    //   props.SetTransportList(transportList.current);
+    // }
+
     // create a function to make a directions request
-    async function getRoute(Marker1, Marker2) {
+    async function getRoute(Marker1, Marker2, DrawRoute = true) {
       //if (!initialized) return;
       console.log(Marker1);
       console.log(Marker2);
@@ -112,39 +124,41 @@ const MapComponent = (props) => {
         return;
       };
       //console.log(json);
-      const data = json.routes[0];
-      const route = data.geometry.coordinates;
-      const geojson = {
-        type: 'Feature',
-        properties: {},
-        geometry: {
-          type: 'LineString',
-          coordinates: route
-        }
-      };
-      // if the route already exists on the map, we'll reset it using setData
-      if (map.getSource('route')) {
-        map.getSource('route').setData(geojson);
-      }
-      // otherwise, we'll make a new request
-      else {
-        map.addLayer({
-          id: 'route',
-          type: 'line',
-          source: {
-            type: 'geojson',
-            data: geojson
-          },
-          layout: {
-            'line-join': 'round',
-            'line-cap': 'round'
-          },
-          paint: {
-            'line-color': '#3887be',
-            'line-width': 5,
-            'line-opacity': 0.75
+      if(DrawRoute){
+        const data = json.routes[0];
+        const route = data.geometry.coordinates;
+        const geojson = {
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'LineString',
+            coordinates: route
           }
-        });
+        };
+        // if the route already exists on the map, we'll reset it using setData
+        if (map.getSource('route')) {
+          map.getSource('route').setData(geojson);
+        }
+        // otherwise, we'll make a new request
+        else {
+          map.addLayer({
+            id: 'route',
+            type: 'line',
+            source: {
+              type: 'geojson',
+              data: geojson
+            },
+            layout: {
+              'line-join': 'round',
+              'line-cap': 'round'
+            },
+            paint: {
+              'line-color': '#3887be',
+              'line-width': 5,
+              'line-opacity': 0.75
+            }
+          });
+        }  
       }
 
       setIsLoading(false);

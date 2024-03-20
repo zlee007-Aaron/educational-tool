@@ -126,6 +126,7 @@ function SidePanel(props) {
     const [SelectedEndDate, SetSelectedEndDate] = useState(null);
 
     const [TotalCo2Emissions, SetTotalCo2Emissions] = useState(null);
+    const [GroupedCo2Emissions, SetGroupedCo2Emissions] = useState([]);
 
 
     const getDaysIncludingDates = () => {
@@ -159,19 +160,22 @@ function SidePanel(props) {
         if(!SelectedStartDate || !SelectedEndDate){
             return;
         }
-
+        let PerVehicleTypes = {};
         const Days = getDaysIncludingDates();
         let Co2Amount = 0;
         transportList.forEach(element => {
+            if(!PerVehicleTypes[element.TransportType]) PerVehicleTypes[element.TransportType] = 0;
             switch (element.JourneyType) {
                 case 'One of trip':
                     let OneOfDateMs = new Date(element.oneOfTripDate).getTime();
-                    if(OneOfDateMs > new Date(SelectedStartDate).getTime() && OneOfDateMs < new Date(SelectedEndDate).getTime()){
-                        Co2Amount += element.EmissionsPerTrip*2; //presume back and fourth trip 
+                    if(OneOfDateMs >= new Date(SelectedStartDate).getTime() && OneOfDateMs <= new Date(SelectedEndDate).getTime()){
+                        Co2Amount += element.EmissionsPerTrip*2; //presume back and fourth trip
+                        PerVehicleTypes[element.TransportType] += element.EmissionsPerTrip*2;
                     }
                 break;
                 case 'Goods delivery':
-                    Co2Amount += Math.floor(Days/element.daysBetweenDelivery) * element.EmissionsPerTrip*2
+                    Co2Amount += Math.floor(Days/element.daysBetweenDelivery) * element.EmissionsPerTrip*2;
+                    PerVehicleTypes[element.TransportType] += Math.floor(Days/element.daysBetweenDelivery) * element.EmissionsPerTrip*2
                 break;
                 case 'Daily Commute':
                     //let StartDay = SelectedStartDate.getDay();
@@ -183,6 +187,7 @@ function SidePanel(props) {
                         for (let i = new Date(SelectedStartDate).getDay(); i < Days; i++) {
                             if(element.commuteDaysOfWeek.includes(GetDayFromNumber(i%7))){
                                 Co2Amount += element.EmissionsPerTrip*2;
+                                PerVehicleTypes[element.TransportType] += element.EmissionsPerTrip*2;
                             }
                         }
                     }
@@ -191,11 +196,13 @@ function SidePanel(props) {
                         for (let i = new Date(SelectedStartDate).getDay(); i < 7; i++) {
                             if(element.commuteDaysOfWeek.includes(GetDayFromNumber(i))){
                                 Co2Amount += element.EmissionsPerTrip*2;
+                                PerVehicleTypes[element.TransportType] += element.EmissionsPerTrip*2;
                             }
                         }
                         for (let i = new Date(SelectedEndDate).getDay(); i > 0; i--) {
                             if(element.commuteDaysOfWeek.includes(GetDayFromNumber(i))){
                                 Co2Amount += element.EmissionsPerTrip*2;
+                                PerVehicleTypes[element.TransportType] += element.EmissionsPerTrip*2;
                             }
                         }
                         console.log('days: ' + Days);
@@ -208,11 +215,19 @@ function SidePanel(props) {
                         console.log('RemainingDays: ' + RemainingDays);
                         let WeeksWorked = RemainingDays/7;
                         Co2Amount += WeeksWorked*element.commuteDaysOfWeek.length*element.EmissionsPerTrip*2;
+                        PerVehicleTypes[element.TransportType] += WeeksWorked*element.commuteDaysOfWeek.length*element.EmissionsPerTrip*2;
                     }
                 break;
             }
         });
+        let PerVehicleTypesArray = [];
+        for (const [key, value] of Object.entries(PerVehicleTypes)) {
+            //console.log(`${key}: ${value}`);
+            PerVehicleTypesArray.push({vehicle: key, Co2: value})
+          }
         console.log(Co2Amount);
+        SetGroupedCo2Emissions(PerVehicleTypesArray);
+        console.log(GroupedCo2Emissions);
         SetTotalCo2Emissions(Co2Amount.toPrecision(4));
     }
 
@@ -321,6 +336,7 @@ function SidePanel(props) {
 
     //Updates the local transport list when the main one updates
     useEffect(() => {
+        console.log("TransportListUpdated")
         console.log(props.TransportList);
         if(Array.isArray(props.TransportList))
             setTransportList(props.TransportList);
@@ -386,33 +402,41 @@ function SidePanel(props) {
                 <p style={{lineHeight:'10px'}}>
                     Transport Methods
                 </p>
-                <Collapse style={{margin:'10px', backgroundColor:'white'}} items={transportList.map( (item, i) =>{return {
-                    key:i,
-                    label:item.Descriptor,
-                    children: 
-                    <Flex vertical>
-                        {console.log(item)}
-                        <p style={{lineHeight:'12px', margin:'4px'}}>Journey Distance: {item.Distance? item.Distance + 'm' : ''}</p>
-                        <p style={{lineHeight:'12px', margin:'4px'}}>Co2 emissions per journey: {item.EmissionsPerTrip? item.EmissionsPerTrip + 'g' : ''} </p>
-                        <p style={{lineHeight:'12px', margin:'4px'}}>Vehicle Type: {item.TransportType? item.TransportType : ''}</p>
-                        {item.JourneyType === 'One of trip' && <Flex justify='center' align='center'>One of date: <DatePicker style={{marginLeft:'10px'}} disabled defaultValue={item.oneOfTripDate}/></Flex>}
-                        {item.JourneyType === 'Goods delivery' && <p style={{lineHeight:'12px', margin:'4px'}}>Delivery every: {item.daysBetweenDelivery? item.daysBetweenDelivery + ' days' : ''}</p>}
-                        {item.JourneyType === 'Daily Commute' && <Flex justify='center' align='center'>Commute days: 
-                            <Select
-                                mode="multiple"
-                                disabled
-                                style={{
-                                width: '100%',
-                                }}
-                                defaultValue={item.commuteDaysOfWeek}
-                                options={Days}
-                            /></Flex>}
-                        <Button style={{marginTop:'10px'}} onClick={() => props.SetTransportList(transportList.filter( (transportItem) => {return transportItem !== item} ))}> Remove </Button>
+                <div
+                    id="scrollableDiv"
+                    style={{
+                        maxHeight: 400,
+                        overflow: 'auto',
+                        padding: '0 16px',
+                        border: '1px solid rgba(140, 140, 140, 0.35)',
+                    }}
+                    >
+                    <Collapse style={{margin:'10px', backgroundColor:'white'}} items={transportList.map( (item, i) =>{return {
+                        key:i,
+                        label:item.Descriptor,
+                        children: 
+                        <Flex vertical>
+                            <p style={{lineHeight:'12px', margin:'4px'}}>Journey Distance: {item.Distance? item.Distance + 'm' : ''}</p>
+                            <p style={{lineHeight:'12px', margin:'4px'}}>Co2 emissions per journey: {item.EmissionsPerTrip? item.EmissionsPerTrip + 'g' : ''} </p>
+                            <p style={{lineHeight:'12px', margin:'4px'}}>Vehicle Type: {item.TransportType? item.TransportType : ''}</p>
+                            {item.JourneyType === 'One of trip' && <Flex justify='center' align='center'>One of date: <DatePicker style={{marginLeft:'10px'}} disabled defaultValue={item.oneOfTripDate}/></Flex>}
+                            {item.JourneyType === 'Goods delivery' && <p style={{lineHeight:'12px', margin:'4px'}}>Delivery every: {item.daysBetweenDelivery? item.daysBetweenDelivery + ' days' : ''}</p>}
+                            {item.JourneyType === 'Daily Commute' && <Flex justify='center' align='center'>Commute days: 
+                                <Select
+                                    mode="multiple"
+                                    disabled
+                                    style={{
+                                    width: '100%',
+                                    }}
+                                    defaultValue={item.commuteDaysOfWeek}
+                                    options={Days}
+                                /></Flex>}
+                            <Button style={{marginTop:'10px'}} onClick={() => props.SetTransportList(transportList.filter( (transportItem) => {return transportItem !== item} ))}> Remove </Button>
 
-                    </Flex>
-                    }} )}
-                    />
-
+                        </Flex>
+                        }} )}
+                        />
+                </div>
                 <Flex style={{ width:'100%', alignContent:'center', justifyContent:'center', marginTop:'10px'}}>
                     {!OfficeLocationMode && 
                     <Button onClick={() =>{ SetNewTransportItemScreen(true) }} style={{marginRight:'5px'}}>
@@ -433,9 +457,29 @@ function SidePanel(props) {
                             Calculate
                     </Button>
                     {TotalCo2Emissions && 
+                    <>
                         <p style={{lineHeight:'10px'}}>
-                            Total Co2 Emissions: {TotalCo2Emissions/1000} Kg Co2
-                        </p>                    
+                            Total Co2 Emissions: {(TotalCo2Emissions/1000).toPrecision(4)} Kg Co2
+                        </p>
+                        <List dataSource={GroupedCo2Emissions} renderItem={ (item) => {
+                            <List.Item>
+                                {item.vehicle} | {item.Co2} 
+                            </List.Item>
+                        }}/>
+                        <List
+                            //header={<div>Header</div>}
+                            //footer={<div>Footer</div>}
+                            style={{backgroundColor:'white'}}
+                            bordered
+                            dataSource={GroupedCo2Emissions}
+                            renderItem={(item) => (
+                                <List.Item >
+                                    {item.vehicle} | {(item.Co2/1000).toPrecision(4)}Kg Co2
+                                </List.Item>
+                            )}
+                        />
+                    </>
+
                     }
 
                 </Flex>

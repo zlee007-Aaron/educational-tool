@@ -45,6 +45,9 @@ function MainLayout(props) {
     useEffect(() => {
         console.log(CurrentlySelectedMapDirections);
       }, [CurrentlySelectedMapDirections])
+    useEffect(() => {
+        console.log(transportList);
+      }, [transportList])
 
     const AddToTransportList = (newItem) => {
         const list = [...transportList];
