@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Dropdown, Button, Card, Space } from 'antd';
 import { DownOutlined } from '@ant-design/icons';
-import { Flex, Input, DatePicker, Divider, Select, Tooltip, List, Typography } from 'antd';
+import { Flex, Input, DatePicker, Divider, Select, Collapse, Tooltip, List, Typography } from 'antd';
 const { RangePicker } = DatePicker;
 
 //Emissions are in grams
@@ -107,6 +107,7 @@ function SidePanel(props) {
     const [selectedJourneyType, SetselectedJourneyType] = useState(null);
     const [JourneyDistance, SetJourneyDistance] = useState(null);
     const [JourneyDuration, SetJourneyDuration] = useState(null);
+    const [JourneyDestination, SetJourneyDestination] = useState(null);
     const [EmissionValue, SetEmissionValue] = useState(null);
     const [perTonGoods, SetPerTonGoods] = useState(false);
     const [TonesOfGoods, SetTonesOfGoods] = useState(null);
@@ -191,7 +192,7 @@ function SidePanel(props) {
 
         SetTotalEmissionsPerTrip(Totalemissions);
 
-        if(Totalemissions == 0){
+        if(Totalemissions == 0 || isNaN(Totalemissions)){
             SetWarningMessage("Enter all values first and click to set a distance on the map");
         }
         else if(selectedJourneyType){
@@ -243,10 +244,12 @@ function SidePanel(props) {
         if(props.mapDirections){
             SetJourneyDistance(props.mapDirections.Distance);
             SetJourneyDuration(props.mapDirections.Duration);
+            SetJourneyDestination(props.mapDirections.MapMarkerLocation)
     
             let TransportItem = NewTransportItem;
             TransportItem.Duration = props.mapDirections.Duration;
             TransportItem.Distance = props.mapDirections.Distance;
+            TransportItem.Destination = props.mapDirections.MapMarkerLocation;
             setNewTransportItem(TransportItem);
 
             console.log(NewTransportItem);
@@ -291,17 +294,32 @@ function SidePanel(props) {
                 <p style={{lineHeight:'10px'}}>
                     TransportMethods
                 </p>
-                <List 
-                style={{margin:'10px'}}
-                bordered 
-                dataSource={transportList} 
-                renderItem={(item) => (
-                    <List.Item>
-                        {/* <Typography.Text mark>[ITEM]</Typography.Text> {item.Descriptor} */}
-                        {item.Descriptor}
-                    </List.Item>
-                    )}
-                />
+                <Collapse style={{margin:'10px', backgroundColor:'white'}} items={transportList.map( (item, i) =>{return {
+                    key:i,
+                    label:item.Descriptor,
+                    children: 
+                    <Flex vertical>
+                        {console.log(item)}
+                        <p style={{lineHeight:'12px', margin:'4px'}}>Journey Distance: {item.Distance? item.Distance + 'm' : ''}</p>
+                        <p style={{lineHeight:'12px', margin:'4px'}}>Co2 emissions per journey: {item.EmissionsPerTrip? item.EmissionsPerTrip + 'g' : ''} </p>
+                        <p style={{lineHeight:'12px', margin:'4px'}}>Vehicle Type: {item.TransportType? item.TransportType : ''}</p>
+                        {item.JourneyType === 'One of trip' && <Flex justify='center' align='center'>One of date: <DatePicker style={{marginLeft:'10px'}} disabled defaultValue={item.oneOfTripDate}/></Flex>}
+                        {item.JourneyType === 'Goods delivery' && <p style={{lineHeight:'12px', margin:'4px'}}>Delivery every: {item.daysBetweenDelivery? item.daysBetweenDelivery + ' days' : ''}</p>}
+                        {item.JourneyType === 'Daily Commute' && <Flex justify='center' align='center'>Commute days: 
+                            <Select
+                                mode="multiple"
+                                disabled
+                                style={{
+                                width: '100%',
+                                }}
+                                defaultValue={item.commuteDaysOfWeek}
+                                options={Days}
+                            /></Flex>}
+                        <Button style={{marginTop:'10px'}} onClick={() => props.SetTransportList(transportList.filter( (transportItem) => {return transportItem !== item} ))}> Delete This </Button>
+
+                    </Flex>
+                    }} )}
+                    />
 
                 <Flex style={{width:'100%', justifyContent:'center', marginTop:'10px'}}>
                     {!OfficeLocationMode && 
@@ -324,8 +342,6 @@ function SidePanel(props) {
                     </Button>
                 </Flex>
             </Flex>
-
-
 
             </>
         }
