@@ -150,7 +150,7 @@ const MapComponent = (props) => {
         color={'#1677FF'}
         loading={isLoading}
         size={25}
-        cssOverride={{marginTop: '50%'}}
+        cssOverride={{top: '50%'}}
         aria-label="Loading Spinner"
         data-testid="loader"
       />
