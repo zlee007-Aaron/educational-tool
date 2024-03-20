@@ -125,6 +125,98 @@ function SidePanel(props) {
     const [SelectedStartDate, SetSelectedStartDate] = useState(null);
     const [SelectedEndDate, SetSelectedEndDate] = useState(null);
 
+    const [TotalCo2Emissions, SetTotalCo2Emissions] = useState(null);
+
+
+    const getDaysIncludingDates = () => {
+
+        const date1Ms = new Date(SelectedStartDate).getTime();
+        const date2Ms = new Date(SelectedEndDate).getTime();
+
+        const differenceMs = Math.abs(date2Ms - date1Ms);
+      
+        // Convert the difference to days
+        const daysDifference = Math.ceil(differenceMs / (1000 * 60 * 60 * 24));
+      
+        return daysDifference + 1;
+    }
+
+
+    const days = ['sun', 'mon', 'tue', 'wed', 'thur', 'fri', 'sat'];
+    const getDayOfWeek = (date) => {
+        let dayIndex = date.getDay();
+        return days[dayIndex];
+    }
+    const GetDayFromNumber = (day) => {
+        return days[day];
+    }
+    const GetNumberFromDay = (day) => {
+        return days.findIndex(day);
+    }
+
+    const CalculateEmissions = () => {
+        console.log(SelectedStartDate);
+        if(!SelectedStartDate || !SelectedEndDate){
+            return;
+        }
+
+        const Days = getDaysIncludingDates();
+        let Co2Amount = 0;
+        transportList.forEach(element => {
+            switch (element.JourneyType) {
+                case 'One of trip':
+                    let OneOfDateMs = new Date(element.oneOfTripDate).getTime();
+                    if(OneOfDateMs > new Date(SelectedStartDate).getTime() && OneOfDateMs < new Date(SelectedEndDate).getTime()){
+                        Co2Amount += element.EmissionsPerTrip*2; //presume back and fourth trip 
+                    }
+                break;
+                case 'Goods delivery':
+                    Co2Amount += Math.floor(Days/element.daysBetweenDelivery) * element.EmissionsPerTrip*2
+                break;
+                case 'Daily Commute':
+                    //let StartDay = SelectedStartDate.getDay();
+
+                    //let EndDay = SelectedStartDate.getDay();
+
+                    if(Days < 7){
+                        //Get start day, then check each other day index
+                        for (let i = new Date(SelectedStartDate).getDay(); i < Days; i++) {
+                            if(element.commuteDaysOfWeek.includes(GetDayFromNumber(i%7))){
+                                Co2Amount += element.EmissionsPerTrip*2;
+                            }
+                        }
+                    }
+                    else{
+                        //Calculate days for first and last week
+                        for (let i = new Date(SelectedStartDate).getDay(); i < 7; i++) {
+                            if(element.commuteDaysOfWeek.includes(GetDayFromNumber(i))){
+                                Co2Amount += element.EmissionsPerTrip*2;
+                            }
+                        }
+                        for (let i = new Date(SelectedEndDate).getDay(); i > 0; i--) {
+                            if(element.commuteDaysOfWeek.includes(GetDayFromNumber(i))){
+                                Co2Amount += element.EmissionsPerTrip*2;
+                            }
+                        }
+                        console.log('days: ' + Days);
+                        let removeFromFront = 7 - new Date(SelectedStartDate).getDay();
+                        console.log('removeFromFront: ' + removeFromFront);
+                        let removeFromEnd = new Date(SelectedEndDate).getDay() + 1;
+                        console.log('removeFromEnd: ' + removeFromEnd);
+                        let RemainingDays = Days - removeFromFront - removeFromEnd;
+                        //RemainingDays should now be a multiple of 7, and also contain the length of whole weeks, so
+                        console.log('RemainingDays: ' + RemainingDays);
+                        let WeeksWorked = RemainingDays/7;
+                        Co2Amount += WeeksWorked*element.commuteDaysOfWeek.length*element.EmissionsPerTrip*2;
+                    }
+                break;
+            }
+        });
+        console.log(Co2Amount);
+        SetTotalCo2Emissions(Co2Amount.toPrecision(4));
+    }
+
+
     const SetTransportType = (e) => {
         let TransportItem = NewTransportItem;
         let TT = VehicleTypesSelectable.find((value) => value.key == e.key);
@@ -292,7 +384,7 @@ function SidePanel(props) {
             <>
             <Flex vertical>
                 <p style={{lineHeight:'10px'}}>
-                    TransportMethods
+                    Transport Methods
                 </p>
                 <Collapse style={{margin:'10px', backgroundColor:'white'}} items={transportList.map( (item, i) =>{return {
                     key:i,
@@ -315,16 +407,16 @@ function SidePanel(props) {
                                 defaultValue={item.commuteDaysOfWeek}
                                 options={Days}
                             /></Flex>}
-                        <Button style={{marginTop:'10px'}} onClick={() => props.SetTransportList(transportList.filter( (transportItem) => {return transportItem !== item} ))}> Delete This </Button>
+                        <Button style={{marginTop:'10px'}} onClick={() => props.SetTransportList(transportList.filter( (transportItem) => {return transportItem !== item} ))}> Remove </Button>
 
                     </Flex>
                     }} )}
                     />
 
-                <Flex style={{width:'100%', justifyContent:'center', marginTop:'10px'}}>
+                <Flex style={{ width:'100%', alignContent:'center', justifyContent:'center', marginTop:'10px'}}>
                     {!OfficeLocationMode && 
                     <Button onClick={() =>{ SetNewTransportItemScreen(true) }} style={{marginRight:'5px'}}>
-                        Add New transport
+                        Add New transport method
                     </Button>}
                     
                     <Button onClick={() =>{ SetOfficeLocationMode(!OfficeLocationMode) }} style={{marginLeft:'5px'}}>
@@ -336,10 +428,16 @@ function SidePanel(props) {
                     <p style={{lineHeight:'10px'}}>
                         Co2 Emission Calculator
                     </p>
-                    <RangePicker />
-                    <Button style={{marginTop:'10px'}}>
+                    <RangePicker onChange={ (dates) => {SetSelectedStartDate(new Date(dates[0])); SetSelectedEndDate(new Date(dates[1])); } }/>
+                    <Button style={{marginTop:'10px'}} onClick={CalculateEmissions}>
                             Calculate
                     </Button>
+                    {TotalCo2Emissions && 
+                        <p style={{lineHeight:'10px'}}>
+                            Total Co2 Emissions: {TotalCo2Emissions/1000} Kg Co2
+                        </p>                    
+                    }
+
                 </Flex>
             </Flex>
 

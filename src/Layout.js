@@ -65,7 +65,7 @@ function MainLayout(props) {
 
     return (
         <Layout style={layoutStyle}>
-          <Sider width="25%" style={siderStyle}>
+          <Sider width="368px" style={siderStyle}>
             <SidePanel TransportList={transportList} SetTransportList={setTransportList} AddToTransportList={AddToTransportList} setInAddMode={SetAddMode} setInOfficeSetMode={SetInOfficeSetMode} mapDirections={CurrentlySelectedMapDirections}/>
           </Sider>
           <Layout>
