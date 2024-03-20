@@ -8,7 +8,7 @@ const { RangePicker } = DatePicker;
 const VehicleTypesSelectable = [
     {
       key: '1',
-      label: 'Electric vehicle',
+      label: 'Electric Vehicle',
       emission: 6,
     },
     {
@@ -19,7 +19,7 @@ const VehicleTypesSelectable = [
     },
     {
       key: '3',
-      label: 'Van / light truck',
+      label: 'Van / Light Truck',
       emission: 300,
     },
     {
@@ -29,7 +29,7 @@ const VehicleTypesSelectable = [
     },
     {
       key: '5',
-      label: 'Diesel car',
+      label: 'Diesel Car',
       emission: 157.5,
     },
     {
@@ -110,7 +110,7 @@ function SidePanel(props) {
     const [JourneyDestination, SetJourneyDestination] = useState(null);
     const [EmissionValue, SetEmissionValue] = useState(null);
     const [perTonGoods, SetPerTonGoods] = useState(false);
-    const [TonesOfGoods, SetTonesOfGoods] = useState(null);
+    const [TonnesOfGoods, SetTonnesOfGoods] = useState(null);
     const [perPerson, SetPerPerson] = useState(false);
     const [People, SetPeople] = useState(null);
     const [TotalEmissionsPerTrip, SetTotalEmissionsPerTrip] = useState(null);
@@ -242,7 +242,7 @@ function SidePanel(props) {
             SetPerTonGoods(true)
         }
         else{
-            SetTonesOfGoods(null);
+            SetTonnesOfGoods(null);
             SetPerTonGoods(false);
         }
         if(TT.PerPerson){
@@ -291,7 +291,7 @@ function SidePanel(props) {
     useEffect(() => {
         let Totalemissions = ((JourneyDistance/1000)*EmissionValue).toPrecision(5);
         if(perTonGoods){
-            Totalemissions = ((JourneyDistance/1000)*EmissionValue*TonesOfGoods).toPrecision(5);
+            Totalemissions = ((JourneyDistance/1000)*EmissionValue*TonnesOfGoods).toPrecision(5);
         }
         else if(perPerson){
             Totalemissions = ((JourneyDistance/1000)*EmissionValue*People).toPrecision(5);
@@ -331,7 +331,7 @@ function SidePanel(props) {
         let TransportItem = NewTransportItem;
         TransportItem.EmissionsPerTrip = Totalemissions;
         setNewTransportItem(TransportItem);
-    },[EmissionValue, TonesOfGoods, People, JourneyDistance, selectedJourneyType, CommuteDaysOfWeek, OneOffTripDate, DaysBetweenDelivery, Descriptor])
+    },[EmissionValue, TonnesOfGoods, People, JourneyDistance, selectedJourneyType, CommuteDaysOfWeek, OneOffTripDate, DaysBetweenDelivery, Descriptor])
 
 
     //Updates the local transport list when the main one updates
@@ -377,7 +377,7 @@ function SidePanel(props) {
             SetJourneyDuration(null);
             SetEmissionValue(null);
             SetPerTonGoods(false);
-            SetTonesOfGoods(null);
+            SetTonnesOfGoods(null);
             SetPerPerson(false);
             SetPeople(null);
             SetTotalEmissionsPerTrip(null);
@@ -542,8 +542,8 @@ function SidePanel(props) {
 
                         {perTonGoods &&
                         <List.Item>
-                            Tones of goods
-                            <Input placeholder="Ton's of goods" onChange={(e) => SetTonesOfGoods(Number(e.target.value))} />
+                            Tonnes of goods
+                            <Input placeholder="Ton's of goods" onChange={(e) => SetTonnesOfGoods(Number(e.target.value))} />
                         </List.Item>
                         }
                         {perPerson &&
