@@ -12,7 +12,7 @@ const headerStyle = {
     height: 64,
     paddingInline: 48,
     lineHeight: '64px',
-    backgroundColor: '#4096ff',
+    backgroundColor: '#91db21',
   };
   const contentStyle = {
     textAlign: 'center',
@@ -24,7 +24,7 @@ const headerStyle = {
     textAlign: 'center',
     lineHeight: '120px',
     color: '#fff',
-    backgroundColor: '#1677ff',
+    backgroundColor: '#82c41d',
   };
   const layoutStyle = {
     overflow: 'hidden',
