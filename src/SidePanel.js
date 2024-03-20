@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Dropdown, Button, Card, Space } from 'antd';
 import { DownOutlined } from '@ant-design/icons';
-import { Flex, Input, Divider, Tooltip, List, Typography } from 'antd';
+import { Flex, Input, DatePicker, Select, Divider, Tooltip, List, Typography } from 'antd';
 
 
 //Emissions are in grams
@@ -61,13 +61,34 @@ const TypeOfJourney = [
   ];
 
 const Days = [
-    'mon',
-    'tue',
-    'wed',
-    'thur',
-    'fri',
-    'sat',
-    'sun',
+    {
+        label: 'mon',
+        value: 'mon',
+    },
+    {
+        label: 'tue',
+        value: 'tue',
+    },
+    {
+        label: 'wed',
+        value: 'wed',
+    },
+    {
+        label: 'thur',
+        value: 'thur',
+    },
+    {
+        label: 'fri',
+        value: 'fri',
+    },
+    {
+        label: 'sat',
+        value: 'sat',
+    },
+    {
+        label: 'sun',
+        value: 'sun',
+    },
 ];
 
 function SidePanel(props) {
@@ -88,6 +109,10 @@ function SidePanel(props) {
     const [perPerson, SetPerPerson] = useState(false);
     const [People, SetPeople] = useState(null);
     const [TotalEmissionsPerTrip, SetTotalEmissionsPerTrip] = useState(null);
+
+    const [OneOffTripDate, SetOneOffTripDate] = useState(null);
+    const [CommuteDaysOfWeek, SetCommuteDaysOfWeek] = useState([]);
+    const [DaysBetweenDelivery, SetDaysBetweenDelivery] = useState(null);
 
     const [WarningMessage, SetWarningMessage] = useState(null);
 
@@ -126,8 +151,20 @@ function SidePanel(props) {
     }
 
     const AddCurrentTransportItemToList = () => {
-        if(NewTransportItem && NewTransportItem.TransportType && NewTransportItem.Distance && NewTransportItem.EmissionsPerTrip)
-            props.AddToTransportList(NewTransportItem);
+        if(NewTransportItem && NewTransportItem.TransportType && NewTransportItem.Distance && NewTransportItem.EmissionsPerTrip){
+            let newTransportItem = NewTransportItem;
+            if(selectedJourneyType === 'Daily Commute' && CommuteDaysOfWeek.length > 0){
+                newTransportItem.commuteDaysOfWeek = CommuteDaysOfWeek;
+            }
+            if(selectedJourneyType === 'One of trip' && OneOffTripDate){
+                newTransportItem.oneOfTripDate = OneOffTripDate;
+            }
+            if(selectedJourneyType === 'Goods delivery' && DaysBetweenDelivery){
+                newTransportItem.daysBetweenDelivery = DaysBetweenDelivery;
+            }
+            console.log(newTransportItem);
+            props.AddToTransportList(newTransportItem);
+        }
     }
 
     //Sets the total emissions when any of the values used to calculate it change
@@ -143,7 +180,26 @@ function SidePanel(props) {
         SetTotalEmissionsPerTrip(Totalemissions);
 
         if(Totalemissions == 0){
-            SetWarningMessage("Enter all values first and set a distance on the map");
+            SetWarningMessage("Enter all values first and click to set a distance on the map");
+        }
+        else if(selectedJourneyType){
+            console.log(DaysBetweenDelivery);
+            if(selectedJourneyType === 'Daily Commute' && CommuteDaysOfWeek.length < 1){
+                SetWarningMessage("Select days of week");
+            }
+            else if(selectedJourneyType === 'One of trip' && !!!OneOffTripDate){
+                SetWarningMessage("Select a date");
+            }
+            else if(selectedJourneyType === 'Goods delivery' && DaysBetweenDelivery < 1){
+                SetWarningMessage("Select days between delivery");
+            }
+            else{
+                SetWarningMessage(null);
+            }
+           
+        }
+        else if(!selectedJourneyType){
+            SetWarningMessage("Select a journey type");
         }
         else{
             SetWarningMessage(null);
@@ -152,7 +208,7 @@ function SidePanel(props) {
         let TransportItem = NewTransportItem;
         TransportItem.EmissionsPerTrip = Totalemissions;
         setNewTransportItem(TransportItem);
-    },[EmissionValue, TonesOfGoods, People, JourneyDistance] )
+    },[EmissionValue, TonesOfGoods, People, JourneyDistance, selectedJourneyType, CommuteDaysOfWeek, OneOffTripDate, DaysBetweenDelivery])
 
 
     //Updates the local transport list when the main one updates
@@ -197,6 +253,12 @@ function SidePanel(props) {
             SetPerPerson(false);
             SetPeople(null);
             SetTotalEmissionsPerTrip(null);
+
+            SetOneOffTripDate(null);
+            SetCommuteDaysOfWeek([]);
+            SetDaysBetweenDelivery(null);
+        
+            SetWarningMessage(null);
         }
       }, [AddNewTransportItemScreen]);
 
@@ -205,7 +267,7 @@ function SidePanel(props) {
         props.setInOfficeSetMode(OfficeLocationMode);
       }, [OfficeLocationMode]);
 
-
+    
     return (
         <>
         {!AddNewTransportItemScreen && 
@@ -304,6 +366,38 @@ function SidePanel(props) {
                         <List.Item>
                             Journey emissions: {TotalEmissionsPerTrip? TotalEmissionsPerTrip + 'g' : ''}
                         </List.Item>
+
+                        {selectedJourneyType === 'Daily Commute' &&
+                        <List.Item>
+                            <Select
+                                mode="multiple"
+                                allowClear
+                                style={{
+                                width: '100%',
+                                }}
+                                placeholder="Please select"
+                                defaultValue={['mon']}
+                                onChange={ (value) => {console.log(value); SetCommuteDaysOfWeek(value);}}
+                                options={Days}
+                            />
+                        </List.Item>
+                        }
+
+                        {selectedJourneyType === 'One of trip' &&
+                        <List.Item>
+                            Pick a date
+                            <DatePicker style={{marginLeft:'10px'}} onChange={ (date) => {console.log(date); SetOneOffTripDate(date);}} />
+                        </List.Item>
+                        }
+
+                        {selectedJourneyType === 'Goods delivery' &&
+                        <List.Item>
+                            Days between each delivery
+                            <Input placeholder="Days between each delivery" onChange={(e) => SetDaysBetweenDelivery(Number(e.target.value))}/>
+                        </List.Item>
+                        }
+
+
                     </List>
 
                 </Flex>
