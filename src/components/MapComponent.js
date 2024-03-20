@@ -45,7 +45,7 @@ const MapComponent = (props) => {
     firstMarker.current = new mapboxgl.Marker();
     secondMarker.current = new mapboxgl.Marker();
 
-    OfficeMarker.current = new mapboxgl.Marker({color:'red'});
+    OfficeMarker.current = new mapboxgl.Marker({color:'red'}).setLngLat([-0.561513, 51.425703]).addTo(map);
     TravelDistanceMarker.current = new mapboxgl.Marker();
 
     map.on('click', add_marker);
