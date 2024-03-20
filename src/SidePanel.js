@@ -98,6 +98,8 @@ function SidePanel(props) {
 
     const [transportList, setTransportList] = useState([]);
 
+    const [Descriptor, SetDescriptor] = useState(null);
+
     const [NewTransportItem, setNewTransportItem] = useState({});
     const [selectedVehicleType, SetselectedVehicleType] = useState(null);
     const [selectedJourneyType, SetselectedJourneyType] = useState(null);
@@ -151,17 +153,21 @@ function SidePanel(props) {
     }
 
     const AddCurrentTransportItemToList = () => {
-        if(NewTransportItem && NewTransportItem.TransportType && NewTransportItem.Distance && NewTransportItem.EmissionsPerTrip){
+        if(NewTransportItem && NewTransportItem.TransportType && NewTransportItem.Distance && NewTransportItem.EmissionsPerTrip && Descriptor){
             let newTransportItem = NewTransportItem;
             if(selectedJourneyType === 'Daily Commute' && CommuteDaysOfWeek.length > 0){
                 newTransportItem.commuteDaysOfWeek = CommuteDaysOfWeek;
             }
-            if(selectedJourneyType === 'One of trip' && OneOffTripDate){
+            else if(selectedJourneyType === 'One of trip' && OneOffTripDate){
                 newTransportItem.oneOfTripDate = OneOffTripDate;
             }
-            if(selectedJourneyType === 'Goods delivery' && DaysBetweenDelivery){
+            else if(selectedJourneyType === 'Goods delivery' && DaysBetweenDelivery){
                 newTransportItem.daysBetweenDelivery = DaysBetweenDelivery;
             }
+            else{
+                return;
+            }
+            newTransportItem.Descriptor = Descriptor;
             console.log(newTransportItem);
             props.AddToTransportList(newTransportItem);
         }
@@ -201,6 +207,9 @@ function SidePanel(props) {
         else if(!selectedJourneyType){
             SetWarningMessage("Select a journey type");
         }
+        else if(!Descriptor){
+            SetWarningMessage("Enter a Descriptor/Name");
+        }
         else{
             SetWarningMessage(null);
         }
@@ -208,7 +217,7 @@ function SidePanel(props) {
         let TransportItem = NewTransportItem;
         TransportItem.EmissionsPerTrip = Totalemissions;
         setNewTransportItem(TransportItem);
-    },[EmissionValue, TonesOfGoods, People, JourneyDistance, selectedJourneyType, CommuteDaysOfWeek, OneOffTripDate, DaysBetweenDelivery])
+    },[EmissionValue, TonesOfGoods, People, JourneyDistance, selectedJourneyType, CommuteDaysOfWeek, OneOffTripDate, DaysBetweenDelivery, Descriptor])
 
 
     //Updates the local transport list when the main one updates
@@ -281,7 +290,8 @@ function SidePanel(props) {
                 dataSource={transportList} 
                 renderItem={(item) => (
                     <List.Item>
-                        <Typography.Text mark>[ITEM]</Typography.Text> {item.TransportType}
+                        {/* <Typography.Text mark>[ITEM]</Typography.Text> {item.Descriptor} */}
+                        {item.Descriptor}
                     </List.Item>
                     )}
                 />
@@ -304,6 +314,10 @@ function SidePanel(props) {
                     </p>
 
                     <List style={{margin:'10px', backgroundColor:'white', borderRadius:'10px', textAlign: 'left', paddingLeft: '10px', paddingRight: '10px'}} >
+                        <List.Item>
+                            Descriptor/Name
+                            <Input placeholder="Employee{1}_Commute" onChange={(e) => SetDescriptor(e.target.value)}/>
+                        </List.Item>
                         <List.Item>
                             <Dropdown
                                 menu={{
