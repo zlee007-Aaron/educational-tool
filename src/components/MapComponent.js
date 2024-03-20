@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
+import PropagateLoader from "react-spinners/PropagateLoader";
 import mapboxgl from "mapbox-gl";
 import 'mapbox-gl/dist/mapbox-gl.css';
 import "./MapComponent.css";
@@ -16,6 +17,8 @@ const MapComponent = (props) => {
   const transportList = useRef([]);
 
   var turn = 0;
+  
+  const [isLoading, setIsLoading] = useState(false);
 
   const AddMode = useRef(false);
   const IsInSetOfficeMode = useRef(false);
@@ -94,6 +97,7 @@ const MapComponent = (props) => {
       //if (!initialized) return;
       console.log(Marker1);
       console.log(Marker2);
+      setIsLoading(true);
       let query;
       let json;
       try{
@@ -143,6 +147,7 @@ const MapComponent = (props) => {
         });
       }
 
+      setIsLoading(false);
       return json;
       // add turn instructions here at the end
     }
@@ -150,7 +155,16 @@ const MapComponent = (props) => {
 
 
   return (
-    <div className='map-container' ref={mapContainerRef} />
+    <div className='map-container' ref={mapContainerRef}>
+      <PropagateLoader 
+        color={'#1677FF'}
+        loading={isLoading}
+        size={25}
+        cssOverride={{top: '50%'}}
+        aria-label="Loading Spinner"
+        data-testid="loader"
+      />
+    </div>
   );
 };
 
