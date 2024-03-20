@@ -156,7 +156,7 @@ const MapComponent = (props) => {
             });
           }  
         }
-        
+
       } catch {
         console.log('Too far')
         return;
@@ -173,7 +173,7 @@ const MapComponent = (props) => {
   return (
     <div className='map-container' ref={mapContainerRef}>
       <PropagateLoader 
-        color={'#91DB21'}
+        color={'#2ecc71'}
         loading={isLoading}
         size={25}
         cssOverride={{top: '50%'}}

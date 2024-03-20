@@ -417,7 +417,7 @@ function SidePanel(props) {
                         children: 
                         <Flex vertical>
                             <p style={{lineHeight:'12px', margin:'4px'}}>Journey Distance: {item.Distance? item.Distance + 'm' : ''}</p>
-                            <p style={{lineHeight:'12px', margin:'4px'}}>Co2 emissions per journey: {item.EmissionsPerTrip? item.EmissionsPerTrip + 'g' : ''} </p>
+                            <p style={{lineHeight:'12px', margin:'4px'}}>Co2 Emissions Per Journey: {item.EmissionsPerTrip? item.EmissionsPerTrip + 'g' : ''} </p>
                             <p style={{lineHeight:'12px', margin:'4px'}}>Vehicle Type: {item.TransportType? item.TransportType : ''}</p>
                             {item.JourneyType === 'One of trip' && <Flex justify='center' align='center'>One of date: <DatePicker style={{marginLeft:'10px'}} disabled defaultValue={item.oneOfTripDate}/></Flex>}
                             {item.JourneyType === 'Goods delivery' && <p style={{lineHeight:'12px', margin:'4px'}}>Delivery every: {item.daysBetweenDelivery? item.daysBetweenDelivery + ' days' : ''}</p>}
@@ -440,11 +440,11 @@ function SidePanel(props) {
                 <Flex style={{ width:'100%', alignContent:'center', justifyContent:'center', marginTop:'10px'}}>
                     {!OfficeLocationMode && 
                     <Button onClick={() =>{ SetNewTransportItemScreen(true) }} style={{marginRight:'5px'}}>
-                        Add New transport method
+                        Add New Transport
                     </Button>}
                     
                     <Button onClick={() =>{ SetOfficeLocationMode(!OfficeLocationMode) }} style={{marginLeft:'5px'}}>
-                        {OfficeLocationMode? 'Finish setting office location' : 'Edit office location'}
+                        {OfficeLocationMode? 'Finish Setting Office Location' : 'Edit Office Location'}
                     </Button>
                 </Flex>
                 <Divider/>

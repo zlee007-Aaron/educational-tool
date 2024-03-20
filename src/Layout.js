@@ -12,19 +12,19 @@ const headerStyle = {
     height: 64,
     paddingInline: 48,
     lineHeight: '64px',
-    backgroundColor: '#91db21',
+    backgroundColor: '#2ecc71',
   };
   const contentStyle = {
     textAlign: 'center',
     minHeight: 120,
     color: '#fff',
-    backgroundColor: '#91DB21',
+    backgroundColor: '#2ecc71',
   };
   const siderStyle = {
     textAlign: 'center',
     lineHeight: '120px',
     color: '#fff',
-    backgroundColor: '#82c41d',
+    backgroundColor: '#27ae60',
   };
   const layoutStyle = {
     overflow: 'hidden',
