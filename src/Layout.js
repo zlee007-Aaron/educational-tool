@@ -69,7 +69,7 @@ function MainLayout(props) {
             <SidePanel TransportList={transportList} AddToTransportList={AddToTransportList} setInAddMode={SetAddMode} setInOfficeSetMode={SetInOfficeSetMode} mapDirections={CurrentlySelectedMapDirections}/>
           </Sider>
           <Layout>
-            <Header style={headerStyle}>Header</Header>
+            <Header style={headerStyle}>Educational Tool</Header>
             <Content style={contentStyle}>
               <MapComponent TransportList={transportList} SetTransportList={setTransportList} isInAddMode={isInAddMode} isInSetOfficeMode={isInSetOfficeMode} setMapDirections={setCurrentlySelectedMapDirections}/>
             </Content>

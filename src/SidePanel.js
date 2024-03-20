@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Dropdown, Button, Card, Space } from 'antd';
 import { DownOutlined } from '@ant-design/icons';
-import { Flex, Input, DatePicker, Select, Divider, Tooltip, List, Typography } from 'antd';
-
+import { Flex, Input, DatePicker, Divider, Select, Tooltip, List, Typography } from 'antd';
+const { RangePicker } = DatePicker;
 
 //Emissions are in grams
 const VehicleTypesSelectable = [
@@ -98,8 +98,10 @@ function SidePanel(props) {
 
     const [transportList, setTransportList] = useState([]);
 
-    const [Descriptor, SetDescriptor] = useState(null);
 
+
+    //variables for adding new value
+    const [Descriptor, SetDescriptor] = useState(null);
     const [NewTransportItem, setNewTransportItem] = useState({});
     const [selectedVehicleType, SetselectedVehicleType] = useState(null);
     const [selectedJourneyType, SetselectedJourneyType] = useState(null);
@@ -117,6 +119,10 @@ function SidePanel(props) {
     const [DaysBetweenDelivery, SetDaysBetweenDelivery] = useState(null);
 
     const [WarningMessage, SetWarningMessage] = useState(null);
+    //end of variables for adding new value
+
+    const [SelectedStartDate, SetSelectedStartDate] = useState(null);
+    const [SelectedEndDate, SetSelectedEndDate] = useState(null);
 
     const SetTransportType = (e) => {
         let TransportItem = NewTransportItem;
@@ -251,6 +257,8 @@ function SidePanel(props) {
     useEffect(() => {
         props.setInAddMode(AddNewTransportItemScreen);
         if(AddNewTransportItemScreen){
+            //Resets values for adding new
+            SetDescriptor(null);
             setNewTransportItem({});
             SetselectedVehicleType(null);
             SetselectedJourneyType(null);
@@ -262,11 +270,9 @@ function SidePanel(props) {
             SetPerPerson(false);
             SetPeople(null);
             SetTotalEmissionsPerTrip(null);
-
             SetOneOffTripDate(null);
             SetCommuteDaysOfWeek([]);
             SetDaysBetweenDelivery(null);
-        
             SetWarningMessage(null);
         }
       }, [AddNewTransportItemScreen]);
@@ -281,7 +287,8 @@ function SidePanel(props) {
         <>
         {!AddNewTransportItemScreen && 
             <>
-                <p>
+            <Flex vertical>
+                <p style={{lineHeight:'10px'}}>
                     TransportMethods
                 </p>
                 <List 
@@ -296,16 +303,36 @@ function SidePanel(props) {
                     )}
                 />
 
-                {!OfficeLocationMode && 
-                <Button onClick={() =>{ SetNewTransportItemScreen(true) }}>
-                    Add New transport
-                </Button>}
+                <Flex style={{width:'100%', justifyContent:'center', marginTop:'10px'}}>
+                    {!OfficeLocationMode && 
+                    <Button onClick={() =>{ SetNewTransportItemScreen(true) }} style={{marginRight:'5px'}}>
+                        Add New transport
+                    </Button>}
+                    
+                    <Button onClick={() =>{ SetOfficeLocationMode(!OfficeLocationMode) }} style={{marginLeft:'5px'}}>
+                        {OfficeLocationMode? 'Finish setting office location' : 'Edit office location'}
+                    </Button>
+                </Flex>
+                <Divider/>
+                <Flex vertical style={{margin:'16px'}}>
+                    <p style={{lineHeight:'10px'}}>
+                        Co2 Emission Calculator
+                    </p>
+                    <RangePicker />
+                    <Button style={{marginTop:'10px'}}>
+                            Calculate
+                    </Button>
+                </Flex>
+            </Flex>
 
-                <Button onClick={() =>{ SetOfficeLocationMode(!OfficeLocationMode) }}>
-                    {OfficeLocationMode? 'Finish setting office location' : 'Edit office location'}
-                </Button>
+
+
             </>
         }
+
+
+        {/* Below is adding new items html */}
+
         {AddNewTransportItemScreen && 
             <div>
                 <Flex vertical style={{margin:'10px'}}>
