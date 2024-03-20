@@ -408,7 +408,6 @@ function SidePanel(props) {
                         maxHeight: 400,
                         overflow: 'auto',
                         padding: '0 16px',
-                        border: '1px solid rgba(140, 140, 140, 0.35)',
                     }}
                     >
                     <Collapse style={{margin:'10px', backgroundColor:'white'}} items={transportList.map( (item, i) =>{return {
@@ -604,17 +603,17 @@ function SidePanel(props) {
 
                 {WarningMessage &&
                 <Tooltip placement="top" title={WarningMessage} >
-                    <Button  disabled={WarningMessage} >
+                    <Button style={{margin: '5px'}} disabled={WarningMessage} >
                         Add
                     </Button>
                 </Tooltip>}
                 {!WarningMessage &&
-                    <Button onClick={() =>{AddCurrentTransportItemToList(); SetNewTransportItemScreen(false) }}>
+                    <Button style={{margin: '5px'}} onClick={() =>{AddCurrentTransportItemToList(); SetNewTransportItemScreen(false) }}>
                         Add
                     </Button>
                 }
 
-                <Button onClick={() =>{ SetNewTransportItemScreen(false) }}>
+                <Button style={{margin: '5px'}} onClick={() =>{ SetNewTransportItemScreen(false) }}>
                     Cancel
                 </Button>
             </div>
