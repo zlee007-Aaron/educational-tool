@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
+import PropagateLoader from "react-spinners/PropagateLoader";
 import mapboxgl from "mapbox-gl";
 import 'mapbox-gl/dist/mapbox-gl.css';
 import "./MapComponent.css";
@@ -16,6 +17,8 @@ const MapComponent = (props) => {
   const transportList = useRef([]);
 
   var turn = 0;
+  
+  const [isLoading, setIsLoading] = useState(false);
 
   const AddMode = useRef(false);
   const IsInSetOfficeMode = useRef(false);
@@ -92,6 +95,7 @@ const MapComponent = (props) => {
       //if (!initialized) return;
       console.log(Marker1);
       console.log(Marker2);
+      setIsLoading(true);
       const query = await fetch(
         `https://api.mapbox.com/directions/v5/mapbox/driving/${Marker1._lngLat.lng},${Marker1._lngLat.lat};${Marker2._lngLat.lng},${Marker2._lngLat.lat}?alternatives=true&geometries=geojson&language=en&overview=full&steps=false&access_token=${mapboxgl.accessToken}`,
         { method: 'GET' }
@@ -133,6 +137,7 @@ const MapComponent = (props) => {
         });
       }
 
+      setIsLoading(false);
       return json;
       // add turn instructions here at the end
     }
@@ -140,7 +145,16 @@ const MapComponent = (props) => {
 
 
   return (
-    <div className='map-container' ref={mapContainerRef} />
+    <div className='map-container' ref={mapContainerRef}>
+      <PropagateLoader 
+        color={'#1677FF'}
+        loading={isLoading}
+        size={25}
+        cssOverride={{marginTop: '50%'}}
+        aria-label="Loading Spinner"
+        data-testid="loader"
+      />
+    </div>
   );
 };
 
