@@ -78,7 +78,9 @@ const MapComponent = (props) => {
         TravelDistanceMarker.current.setLngLat(event.lngLat).addTo(map);
         if(OfficeMarker.current._lngLat && TravelDistanceMarker.current._lngLat){
           getRoute(OfficeMarker.current, TravelDistanceMarker.current).then( (MapRoute) => {
-            props.setMapDirections({Distance: MapRoute.routes[0].distance, Duration: MapRoute.routes[0].duration, MapMarkerOrigin: OfficeMarker.current._lngLat, MapMarkerLocation: TravelDistanceMarker.current._lngLat});
+            if(MapRoute){
+              props.setMapDirections({Distance: MapRoute.routes[0].distance, Duration: MapRoute.routes[0].duration, MapMarkerOrigin: OfficeMarker.current._lngLat, MapMarkerLocation: TravelDistanceMarker.current._lngLat});
+            }
           });
         }
       }
@@ -92,11 +94,19 @@ const MapComponent = (props) => {
       //if (!initialized) return;
       console.log(Marker1);
       console.log(Marker2);
-      const query = await fetch(
-        `https://api.mapbox.com/directions/v5/mapbox/driving/${Marker1._lngLat.lng},${Marker1._lngLat.lat};${Marker2._lngLat.lng},${Marker2._lngLat.lat}?alternatives=true&geometries=geojson&language=en&overview=full&steps=false&access_token=${mapboxgl.accessToken}`,
-        { method: 'GET' }
-      );
-      const json = await query.json();
+      let query;
+      let json;
+      try{
+        query = await fetch(
+          `https://api.mapbox.com/directions/v5/mapbox/driving/${Marker1._lngLat.lng},${Marker1._lngLat.lat};${Marker2._lngLat.lng},${Marker2._lngLat.lat}?alternatives=true&geometries=geojson&language=en&overview=full&steps=false&access_token=${mapboxgl.accessToken}`,
+          { method: 'GET' }
+        );
+        json = await query.json();
+      }
+      catch{
+        console.log('Too far')
+        return;
+      };
       //console.log(json);
       const data = json.routes[0];
       const route = data.geometry.coordinates;
